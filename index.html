@@ -164,7 +164,7 @@
         <div class="left-half">
             <form id="variable-form">
                 <div class="form-container">
-                    <h2>Categorical variable Info</h2>
+                    <h2>Variable Info</h2>
                     <div class="form-group">
                         <div class="form-label">
                             <label for="current-variable">Variable name:</label>
@@ -222,13 +222,12 @@
                 const measurementLevel = document.getElementById('measurement-level').value;
                 categoryInputsContainer.innerHTML = '';
 
-                console.log("Measurement Level:", measurementLevel); // Log the measurement level to the console
 
                 for (let i = 0; i < numCategories; i++) {
                     const div = document.createElement('div');
                     div.className = 'category-input';
                     div.innerHTML = `
-            <input type="number" placeholder="Number" ${measurementLevel === 'Scale' ? 'value="N/A" disabled' : ''}>
+            <input type="number" placeholder="Number" ${measurementLevel === 'Scale' ? 'value="N/A" disabled' : ''} oninput="checkSubsequent(this)">
             <input type="text" placeholder="Category" ${measurementLevel === 'Scale' ? 'value="N/A" disabled' : ''}>
         `;
                     categoryInputsContainer.appendChild(div);
@@ -250,6 +249,27 @@
 
                 // Generate category inputs with "N/A" if the level is Scale
                 generateCategoryInputs();
+            }
+
+            function checkSubsequent(input) {
+                const currentValue = parseInt(input.value);
+                if (previousValue !== null && currentValue === previousValue + 1) {
+                    const confirmation = confirm("Can I fill the rest of the numbers in the same subsequent manner?");
+                    if (confirmation) {
+                        fillSubsequentNumbers(input);
+                    }
+                }
+                previousValue = currentValue;
+            }
+
+            function fillSubsequentNumbers(startInput) {
+                let currentValue = parseInt(startInput.value);
+                let currentInput = startInput.nextElementSibling.parentElement.nextElementSibling.querySelector('input[type="number"]');
+                while (currentInput) {
+                    currentValue++;
+                    currentInput.value = currentValue;
+                    currentInput = currentInput.parentElement.nextElementSibling ? currentInput.parentElement.nextElementSibling.querySelector('input[type="number"]') : null;
+                }
             }
 
 
@@ -283,13 +303,14 @@
                 tablesContainer.appendChild(tableContainer);
 
                 tableContainer.innerHTML = `
-    <div class="table-header">
+    
+                <div class="table-header">
         <strong> <span class="varName">${variableName}</span></strong><br>
         <em>Variable Label:</em> <span>${variableLabel}</span><br>
         <span class="info-line">
-            <strong>Level of Measurement:</strong> <span>${measurementLevel}</span>;
-            <strong>Response Type:</strong> <span>${type}</span>;
-            <strong>Number of Categories:</strong> <span>${numCategories}</span>
+            <strong>Level of Measurement:</strong> <span>${measurementLevel}</span><br>
+            <strong>Response Type:</strong> <span>${type}</span><br>
+            <strong>Number of Categories:</strong> <span>${numCategories}</span><br>
         </span>
     </div>
     <table>
@@ -301,6 +322,7 @@
         </thead>
         <tbody></tbody>
     </table>
+    
     `;
 
                 const categoryTableBody = tableContainer.querySelector('tbody');
@@ -355,47 +377,95 @@
             function includeStyles() {
                 const styles = `
                     <style>
-                        .table-container.scale-selected {
-                            background-color: #e0e0e0;
-                        }
+                        .table-container {
+                        margin-top: 20px;
+                        padding: 20px;
+                        border-radius: 5px;
+                        width: 446px;
+            }
 
-                        .table-container.ordinal {
-                            border: 1px solid #ddd;
-                            background-color: #82d64d;
-                        }
+        .table-header {
+            font-size: 15.2px;
+            margin-bottom: 10px;
+        }
 
-                        .table-container.nominal {
-                            border: 1px solid #ddd;
-                            background-color: #a3a3a3;
-                        }
+        .info-line {
+            font-size: 10pt;
+            margin-bottom: 10px;
+        }
 
-                        .table-container.multiple-options {
-                            background-color: #ffc0cb;
-                        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #000000;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .varName {
+            float: right;
+        }
+
+        /* Additional styles */
+        .scale-selected {
+            background-color: #ecec90;
+        }
+
+        .ordinal {
+            border: 1px solid #ddd;
+            background-color: #82d64d;
+        }
+
+        .nominal {
+            border: 1px solid #ddd;
+            background-color: #a3a3a3;
+        }
+
+        .multiple-options {
+            background-color: #ffc0cb;
+        }
+                
+
+        #tables-container{
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(446px, 1fr)); /* Adjust the column width as needed */
+            grid-gap: 20px; /* Adjust the gap between columns as needed */
+        }
+
                     </style>
                 `;
                 return styles;
             }
 
             function downloadRightHalf() {
-                const rightHalfContent = document.querySelector('.right-half').innerHTML; // Get the HTML content of the right half
+                const rightHalfContent = document.querySelector('.right-half').innerHTML; // Get the outer HTML content of the right half
                 const styles = includeStyles(); // Get the styles
 
                 // Combine the right half content with the included styles
                 const combinedHTML = `
-                    <!DOCTYPE html>
-                    <html lang="en">
-                    <head>
-                        <meta charset="UTF-8">
-                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                        <title>Output</title>
-                        ${styles}
-                    </head>
-                    <body>
-                        ${rightHalfContent}
-                    </body>
-                    </html>
-                `;
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Output</title>
+            ${styles}
+        </head>
+        <body>
+            <div class="vars">
+            ${rightHalfContent}
+            </div>
+        </body>
+        </html>
+    `;
 
                 // Display the right half content
                 const rightHalfWindow = window.open('', '_blank');
@@ -410,6 +480,7 @@
                 link.download = 'output.html';
                 link.click();
             }
+
         </script>
 </body>
 
