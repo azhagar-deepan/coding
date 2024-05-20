@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Two Halves Layout</title>
+    <style>
+        /* Style for the container */
+        .container {
+            display: flex;
+            height: 100vh;
+            /* Full viewport height */
+        }
+
+        /* Style for the left half */
+        .left-half {
+            width: 50%;
+            background-image: url("normal.png");
+            background-repeat: no-repeat;
+            background-size: 100%;
+            background-position: bottom;
+            border-right: 2px solid #ccc;
+            /* Vertical line */
+            padding: 20px;
+            box-sizing: border-box;
+            overflow: hidden;
+            /* Hide scrollbar */
+        }
+
+
+        /* Style for the right half */
+        .right-half {
+            width: 50%;
+            overflow-y: auto;
+            /* Enable vertical scrollbar */
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .form-container {
+            display: flex;
+            flex-direction: column;
+            width: 400px;
+            margin: 50px auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .form-label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .form-label label {
+            width: 150px;
+            margin-right: 10px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .category-inputs {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 200px;
+            /* Set the maximum height */
+            overflow-y: auto;
+            /* Enable vertical scrolling */
+            background-color: white;
+        }
+
+        .category-input {
+            display: flex;
+            gap: 10px;
+
+        }
+
+        .category-input input[type="number"] {
+            width: 50px;
+        }
+
+        .category-input input[type="text"] {
+            flex: 1;
+        }
+
+        .table-container {
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+
+        .table-header {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+
+        .info-line {
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <!-- Left half with static form -->
+        <div class="left-half">
+            <form id="variable-form">
+                <div class="form-container">
+                    <h2>Categorical variable Info</h2>
+                    <div class="form-group">
+                        <div class="form-label">
+                            <label for="current-variable">Variable name:</label>
+                            <input type="text" class="form-input" id="current-variable">
+                        </div>
+                        <div class="form-label">
+                            <label for="label">Label:</label>
+                            <input type="text" class="form-input" id="label">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label">
+                            <label for="measurement-level">Measurement Level:</label>
+                            <select id="measurement-level" class="form-input">
+                                <option value="nominal">Nominal</option>
+                                <option value="ordinal">Ordinal</option>
+                            </select>
+                        </div>
+                        <div class="form-label">
+                            <label for="type">Response Type:</label>
+                            <select id="type" class="form-input">
+                                <option value="numeric">single option</option>
+                                <option value="string">multiple options</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label">
+                            <label for="num-categories">No of Categories:</label>
+                            <input type="number" class="form-input" id="num-categories" min="1">
+                            <button type="button" onclick="generateCategoryInputs()"
+                                style="height:36px;color: white;background-color:black;margin-left: 10px;">Go</button>
+                        </div>
+                    </div>
+                    <div id="category-inputs" class="category-inputs"></div>
+                    <button style="color: white; background-color: blue ;" type="button"
+                        onclick="saveFormData()">Save</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Right half (scrollable) -->
+        <div class="right-half">
+            <button onclick="downloadRightHalf()" style="margin-bottom: 20px;">Download Right Half as HTML</button>
+            <div id="table-container" class="table-container" style="display: none;">
+                <div class="table-header">
+                    <strong>Variable Label:</strong> <span id="variable-label"></span><br>
+                    <em>Variable Name:</em> <span id="variable-name"></span><br>
+                    <span class="info-line">
+                        <strong>Level of Measurement:</strong> <span id="measurement-level-info"></span>;
+                        <strong>Type:</strong> <span id="type-info"></span>;
+                        <strong>Number of Categories:</strong> <span id="num-categories-info"></span>
+                    </span>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Category Name</th>
+                        </tr>
+                    </thead>
+                    <tbody id="category-table-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let previousValue = null;
+
+        function generateCategoryInputs() {
+            const numCategories = document.getElementById('num-categories').value;
+            const categoryInputsContainer = document.getElementById('category-inputs');
+            categoryInputsContainer.innerHTML = '';
+
+            for (let i = 0; i < numCategories; i++) {
+                const div = document.createElement('div');
+                div.className = 'category-input';
+                div.innerHTML = `
+                <input type="number" placeholder="Number" oninput="checkSubsequent(this)">
+                <input type="text" placeholder="Category">
+            `;
+                categoryInputsContainer.appendChild(div);
+            }
+        }
+
+        function checkSubsequent(input) {
+            const currentValue = parseInt(input.value);
+            if (previousValue !== null && currentValue === previousValue + 1) {
+                const confirmation = confirm("Can I fill the rest of the numbers in the same subsequent manner?");
+                if (confirmation) {
+                    fillSubsequentNumbers(input);
+                }
+            }
+            previousValue = currentValue;
+        }
+
+        function fillSubsequentNumbers(startInput) {
+            let currentValue = parseInt(startInput.value);
+            let currentInput = startInput.nextElementSibling.parentElement.nextElementSibling.querySelector('input[type="number"]');
+            while (currentInput) {
+                currentValue++;
+                currentInput.value = currentValue;
+                currentInput = currentInput.parentElement.nextElementSibling ? currentInput.parentElement.nextElementSibling.querySelector('input[type="number"]') : null;
+            }
+        }
+
+        function saveFormData() {
+            const variableName = document.getElementById('current-variable').value;
+            const variableLabel = document.getElementById('label').value;
+            const measurementLevel = document.getElementById('measurement-level').value;
+            const type = document.getElementById('type').value;
+            const numCategories = document.getElementById('num-categories').value;
+
+            document.getElementById('variable-label').innerText = variableLabel;
+            document.getElementById('variable-name').innerText = variableName;
+            document.getElementById('measurement-level-info').innerText = measurementLevel;
+            document.getElementById('type-info').innerText = type;
+            document.getElementById('num-categories-info').innerText = numCategories;
+
+            const categoryTableBody = document.getElementById('category-table-body');
+            categoryTableBody.innerHTML = '';
+
+            const categoryInputs = document.getElementById('category-inputs').querySelectorAll('.category-input');
+            categoryInputs.forEach(inputDiv => {
+                const number = inputDiv.querySelector('input[type="number"]').value;
+                const category = inputDiv.querySelector('input[type="text"]').value;
+
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${number}</td><td>${category}</td>`;
+                categoryTableBody.appendChild(row);
+            });
+
+            document.getElementById('table-container').style.display = 'block';
+        }
+    </script>
+
+</body>
+
+</html>
