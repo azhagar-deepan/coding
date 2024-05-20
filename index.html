@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Two Halves Layout</title>
+    <title>Variable Info</title>
     <style>
         /* Style for the container */
         .container {
@@ -104,7 +104,7 @@
         }
 
         .table-header {
-            font-size: 1.2em;
+            font-size: 15.2px;
             margin-bottom: 10px;
         }
 
@@ -127,6 +127,10 @@
 
         th {
             background-color: #f2f2f2;
+        }
+
+        .varName {
+            float: right;
         }
     </style>
 </head>
@@ -153,15 +157,15 @@
                         <div class="form-label">
                             <label for="measurement-level">Measurement Level:</label>
                             <select id="measurement-level" class="form-input">
-                                <option value="nominal">Nominal</option>
-                                <option value="ordinal">Ordinal</option>
+                                <option value="Nominal">Nominal</option>
+                                <option value="Ordinal">Ordinal</option>
                             </select>
                         </div>
                         <div class="form-label">
                             <label for="type">Response Type:</label>
                             <select id="type" class="form-input">
-                                <option value="numeric">single option</option>
-                                <option value="string">multiple options</option>
+                                <option value="single option">single option</option>
+                                <option value="multiple options">multiple options</option>
                             </select>
                         </div>
                     </div>
@@ -182,100 +186,183 @@
 
         <!-- Right half (scrollable) -->
         <div class="right-half">
-            <button onclick="downloadRightHalf()" style="margin-bottom: 20px;">Download Right Half as HTML</button>
-            <div id="table-container" class="table-container" style="display: none;">
-                <div class="table-header">
-                    <strong>Variable Label:</strong> <span id="variable-label"></span><br>
-                    <em>Variable Name:</em> <span id="variable-name"></span><br>
-                    <span class="info-line">
-                        <strong>Level of Measurement:</strong> <span id="measurement-level-info"></span>;
-                        <strong>Type:</strong> <span id="type-info"></span>;
-                        <strong>Number of Categories:</strong> <span id="num-categories-info"></span>
-                    </span>
-                </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Code</th>
-                            <th>Category Name</th>
-                        </tr>
-                    </thead>
-                    <tbody id="category-table-body"></tbody>
-                </table>
-            </div>
+            <button onclick="downloadRightHalf()" style="margin-bottom: 20px;">Download as HTML</button>
+            <div id="tables-container"></div>
         </div>
-    </div>
 
-    <script>
-        let previousValue = null;
+        <script>
+            let previousValue = null;
 
-        function generateCategoryInputs() {
-            const numCategories = document.getElementById('num-categories').value;
-            const categoryInputsContainer = document.getElementById('category-inputs');
-            categoryInputsContainer.innerHTML = '';
+            function generateCategoryInputs() {
+                const numCategories = document.getElementById('num-categories').value;
+                const categoryInputsContainer = document.getElementById('category-inputs');
+                categoryInputsContainer.innerHTML = '';
 
-            for (let i = 0; i < numCategories; i++) {
-                const div = document.createElement('div');
-                div.className = 'category-input';
-                div.innerHTML = `
-                <input type="number" placeholder="Number" oninput="checkSubsequent(this)">
-                <input type="text" placeholder="Category">
-            `;
-                categoryInputsContainer.appendChild(div);
-            }
-        }
-
-        function checkSubsequent(input) {
-            const currentValue = parseInt(input.value);
-            if (previousValue !== null && currentValue === previousValue + 1) {
-                const confirmation = confirm("Can I fill the rest of the numbers in the same subsequent manner?");
-                if (confirmation) {
-                    fillSubsequentNumbers(input);
+                for (let i = 0; i < numCategories; i++) {
+                    const div = document.createElement('div');
+                    div.className = 'category-input';
+                    div.innerHTML = `
+            <input type="number" placeholder="Number" oninput="checkSubsequent(this)">
+            <input type="text" placeholder="Category">
+        `;
+                    categoryInputsContainer.appendChild(div);
                 }
             }
-            previousValue = currentValue;
-        }
 
-        function fillSubsequentNumbers(startInput) {
-            let currentValue = parseInt(startInput.value);
-            let currentInput = startInput.nextElementSibling.parentElement.nextElementSibling.querySelector('input[type="number"]');
-            while (currentInput) {
-                currentValue++;
-                currentInput.value = currentValue;
-                currentInput = currentInput.parentElement.nextElementSibling ? currentInput.parentElement.nextElementSibling.querySelector('input[type="number"]') : null;
+            function checkSubsequent(input) {
+                const currentValue = parseInt(input.value);
+                if (previousValue !== null && currentValue === previousValue + 1) {
+                    const confirmation = confirm("Can I fill the rest of the numbers in the same subsequent manner?");
+                    if (confirmation) {
+                        fillSubsequentNumbers(input);
+                    }
+                }
+                previousValue = currentValue;
             }
+
+            function fillSubsequentNumbers(startInput) {
+                let currentValue = parseInt(startInput.value);
+                let currentInput = startInput.nextElementSibling.parentElement.nextElementSibling.querySelector('input[type="number"]');
+                while (currentInput) {
+                    currentValue++;
+                    currentInput.value = currentValue;
+                    currentInput = currentInput.parentElement.nextElementSibling ? currentInput.parentElement.nextElementSibling.querySelector('input[type="number"]') : null;
+                }
+            }
+
+            function saveFormData() {
+                const variableName = document.getElementById('current-variable').value;
+                const variableLabel = document.getElementById('label').value;
+                const measurementLevel = document.getElementById('measurement-level').value;
+                const type = document.getElementById('type').value;
+                const numCategories = document.getElementById('num-categories').value;
+
+                const tablesContainer = document.getElementById('tables-container');
+
+                // Create a new table container
+                const tableContainer = document.createElement('div');
+                tableContainer.className = 'table-container';
+                tablesContainer.appendChild(tableContainer);
+
+                tableContainer.innerHTML = `
+            <div class="table-header">
+                <strong> <span class="varName">${variableName}</span></strong><br>
+                <em>Variable Label:</em> <span>${variableLabel}</span><br>
+                <span class="info-line">
+                    <strong>Level of Measurement:</strong> <span>${measurementLevel}</span>;
+                    <strong>Response Type:</strong> <span>${type}</span>;
+                    <strong>Number of Categories:</strong> <span>${numCategories}</span>
+                </span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Category Name</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        `;
+
+                const categoryTableBody = tableContainer.querySelector('tbody');
+                const categoryInputs = document.getElementById('category-inputs').querySelectorAll('.category-input');
+                categoryInputs.forEach(inputDiv => {
+                    const number = inputDiv.querySelector('input[type="number"]').value;
+                    const category = inputDiv.querySelector('input[type="text"]').value;
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `<td>${number}</td><td>${category}</td>`;
+                    categoryTableBody.appendChild(row);
+                });
+
+                // Make the table container visible
+                tableContainer.style.display = 'block';
+            }
+            function includeStyles() {
+                const styles = `
+            <style>
+                .table-container {
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            width:780px;
         }
 
-        function saveFormData() {
-            const variableName = document.getElementById('current-variable').value;
-            const variableLabel = document.getElementById('label').value;
-            const measurementLevel = document.getElementById('measurement-level').value;
-            const type = document.getElementById('type').value;
-            const numCategories = document.getElementById('num-categories').value;
-
-            document.getElementById('variable-label').innerText = variableLabel;
-            document.getElementById('variable-name').innerText = variableName;
-            document.getElementById('measurement-level-info').innerText = measurementLevel;
-            document.getElementById('type-info').innerText = type;
-            document.getElementById('num-categories-info').innerText = numCategories;
-
-            const categoryTableBody = document.getElementById('category-table-body');
-            categoryTableBody.innerHTML = '';
-
-            const categoryInputs = document.getElementById('category-inputs').querySelectorAll('.category-input');
-            categoryInputs.forEach(inputDiv => {
-                const number = inputDiv.querySelector('input[type="number"]').value;
-                const category = inputDiv.querySelector('input[type="text"]').value;
-
-                const row = document.createElement('tr');
-                row.innerHTML = `<td>${number}</td><td>${category}</td>`;
-                categoryTableBody.appendChild(row);
-            });
-
-            document.getElementById('table-container').style.display = 'block';
+        .table-header {
+            font-size: 15.2px;
+            margin-bottom: 10px;
         }
-    </script>
 
+        .info-line {
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .varName {
+            float: right;
+        }
+            </style>
+        `;
+                return styles;
+            }
+
+
+
+            function downloadRightHalf() {
+                const rightHalfContent = document.querySelector('.right-half').innerHTML; // Get the HTML content of the right half
+                const styles = includeStyles(); // Get the styles
+
+                // Combine the right half content with the included styles
+                const combinedHTML = `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Output</title>
+            ${styles}
+        </head>
+        <body>
+            ${rightHalfContent}
+        </body>
+        </html>
+    `;
+
+                // Display the right half content
+                const rightHalfWindow = window.open('', '_blank');
+                rightHalfWindow.document.write(combinedHTML);
+
+                // Create a Blob containing the combined HTML content
+                const blob = new Blob([combinedHTML], { type: 'text/html' });
+
+                // Create a link element and trigger a download
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'output.html';
+                link.click();
+            }
+
+
+        </script>
 </body>
 
 </html>
