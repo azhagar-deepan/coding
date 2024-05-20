@@ -98,9 +98,7 @@
         .table-container {
             margin-top: 20px;
             padding: 20px;
-            border: 1px solid #ddd;
             border-radius: 5px;
-            background-color: #f9f9f9;
         }
 
         .table-header {
@@ -122,7 +120,7 @@
         td {
             padding: 10px;
             text-align: left;
-            border-bottom: 1px solid #ddd;
+            border-bottom: 1px solid #000000;
         }
 
         th {
@@ -131,6 +129,30 @@
 
         .varName {
             float: right;
+        }
+
+        /* Additional styles */
+        .scale-selected {
+            background-color: #ecec90;
+        }
+
+        .ordinal {
+            border: 1px solid #ddd;
+            background-color: #82d64d;
+        }
+
+        .nominal {
+            border: 1px solid #ddd;
+            background-color: #a3a3a3;
+        }
+
+        .multiple-options {
+            background-color: #ffc0cb;
+        }
+
+        .disabled {
+            pointer-events: none;
+            opacity: 0.5;
         }
     </style>
 </head>
@@ -156,12 +178,13 @@
                     <div class="form-group">
                         <div class="form-label">
                             <label for="measurement-level">Measurement Level:</label>
-                            <select id="measurement-level" class="form-input">
+                            <select id="measurement-level" class="form-input" onchange="handleMeasurementLevel()">
                                 <option value="Nominal">Nominal</option>
                                 <option value="Ordinal">Ordinal</option>
+                                <option value="Scale">Scale</option>
                             </select>
                         </div>
-                        <div class="form-label">
+                        <div class="form-label" id="type-label">
                             <label for="type">Response Type:</label>
                             <select id="type" class="form-input">
                                 <option value="single option">single option</option>
@@ -196,46 +219,61 @@
             function generateCategoryInputs() {
                 const numCategories = document.getElementById('num-categories').value;
                 const categoryInputsContainer = document.getElementById('category-inputs');
+                const measurementLevel = document.getElementById('measurement-level').value;
                 categoryInputsContainer.innerHTML = '';
+
+                console.log("Measurement Level:", measurementLevel); // Log the measurement level to the console
 
                 for (let i = 0; i < numCategories; i++) {
                     const div = document.createElement('div');
                     div.className = 'category-input';
                     div.innerHTML = `
-            <input type="number" placeholder="Number" oninput="checkSubsequent(this)">
-            <input type="text" placeholder="Category">
+            <input type="number" placeholder="Number" ${measurementLevel === 'Scale' ? 'value="N/A" disabled' : ''}>
+            <input type="text" placeholder="Category" ${measurementLevel === 'Scale' ? 'value="N/A" disabled' : ''}>
         `;
                     categoryInputsContainer.appendChild(div);
                 }
             }
 
-            function checkSubsequent(input) {
-                const currentValue = parseInt(input.value);
-                if (previousValue !== null && currentValue === previousValue + 1) {
-                    const confirmation = confirm("Can I fill the rest of the numbers in the same subsequent manner?");
-                    if (confirmation) {
-                        fillSubsequentNumbers(input);
-                    }
+            function handleMeasurementLevel() {
+                const measurementLevel = document.getElementById('measurement-level').value;
+                const typeLabel = document.getElementById('type-label');
+
+                if (measurementLevel === 'Scale' || measurementLevel === 'Ordinal') {
+                    typeLabel.classList.add('disabled');
+                    document.getElementById('type').value = 'single option';
+                    document.getElementById('type').disabled = true;
+                } else {
+                    typeLabel.classList.remove('disabled');
+                    document.getElementById('type').disabled = false;
                 }
-                previousValue = currentValue;
+
+                // Generate category inputs with "N/A" if the level is Scale
+                generateCategoryInputs();
             }
 
-            function fillSubsequentNumbers(startInput) {
-                let currentValue = parseInt(startInput.value);
-                let currentInput = startInput.nextElementSibling.parentElement.nextElementSibling.querySelector('input[type="number"]');
-                while (currentInput) {
-                    currentValue++;
-                    currentInput.value = currentValue;
-                    currentInput = currentInput.parentElement.nextElementSibling ? currentInput.parentElement.nextElementSibling.querySelector('input[type="number"]') : null;
-                }
-            }
 
             function saveFormData() {
                 const variableName = document.getElementById('current-variable').value;
                 const variableLabel = document.getElementById('label').value;
                 const measurementLevel = document.getElementById('measurement-level').value;
-                const type = document.getElementById('type').value;
-                const numCategories = document.getElementById('num-categories').value;
+                let type = document.getElementById('type').value; // Retrieve the response type
+                let numCategories = document.getElementById('num-categories').value; // Retrieve the number of categories
+
+                // If the measurement level is 'Scale', set the response type to 'N/A' and number of categories to 'N/A'
+                if (measurementLevel === 'Scale') {
+                    type = 'N/A';
+                    numCategories = 'N/A';
+                }
+
+                if (measurementLevel === 'Ordinal') {
+                    type = 'N/A';
+                }
+                console.log("Variable Name:", variableName);
+                console.log("Variable Label:", variableLabel);
+                console.log("Measurement Level:", measurementLevel);
+                console.log("Response Type:", type); // Log the response type to check if it's set to 'N/A'
+                console.log("Number of Categories:", numCategories); // Log the number of categories to check if it's set to 'N/A'
 
                 const tablesContainer = document.getElementById('tables-container');
 
@@ -245,31 +283,37 @@
                 tablesContainer.appendChild(tableContainer);
 
                 tableContainer.innerHTML = `
-            <div class="table-header">
-                <strong> <span class="varName">${variableName}</span></strong><br>
-                <em>Variable Label:</em> <span>${variableLabel}</span><br>
-                <span class="info-line">
-                    <strong>Level of Measurement:</strong> <span>${measurementLevel}</span>;
-                    <strong>Response Type:</strong> <span>${type}</span>;
-                    <strong>Number of Categories:</strong> <span>${numCategories}</span>
-                </span>
-            </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Code</th>
-                        <th>Category Name</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-        `;
+    <div class="table-header">
+        <strong> <span class="varName">${variableName}</span></strong><br>
+        <em>Variable Label:</em> <span>${variableLabel}</span><br>
+        <span class="info-line">
+            <strong>Level of Measurement:</strong> <span>${measurementLevel}</span>;
+            <strong>Response Type:</strong> <span>${type}</span>;
+            <strong>Number of Categories:</strong> <span>${numCategories}</span>
+        </span>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Code</th>
+                <th>Category Name</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    `;
 
                 const categoryTableBody = tableContainer.querySelector('tbody');
                 const categoryInputs = document.getElementById('category-inputs').querySelectorAll('.category-input');
                 categoryInputs.forEach(inputDiv => {
-                    const number = inputDiv.querySelector('input[type="number"]').value;
-                    const category = inputDiv.querySelector('input[type="text"]').value;
+                    let number = inputDiv.querySelector('input[type="number"]').value;
+                    let category = inputDiv.querySelector('input[type="text"]').value;
+
+                    // Check if measurement level is Scale, if so, set category to "N/A"
+                    if (measurementLevel === 'Scale') {
+                        category = 'N/A';
+                        number = 'N/A';
+                    }
 
                     const row = document.createElement('tr');
                     row.innerHTML = `<td>${number}</td><td>${category}</td>`;
@@ -278,54 +322,60 @@
 
                 // Make the table container visible
                 tableContainer.style.display = 'block';
+
+                // Check for measurement level and apply styles accordingly
+                if (measurementLevel === 'Scale') {
+                    tableContainer.classList.add('scale-selected');
+                } else if (measurementLevel === 'Nominal') {
+                    tableContainer.classList.add('nominal');
+                } else {
+                    tableContainer.classList.add('ordinal');
+                }
+
+                if (type === 'multiple options') {
+                    tableContainer.classList.add('multiple-options');
+                }
+
+                // Clear the form inputs
+                clearForm();
             }
+
+
+            function clearForm() {
+                document.getElementById('current-variable').value = '';
+                document.getElementById('label').value = '';
+                document.getElementById('num-categories').value = '';
+                document.getElementById('type').value = 'single option';
+                document.getElementById('category-inputs').innerHTML = '';
+                document.getElementById('measurement-level').value = 'Nominal';
+                handleMeasurementLevel();
+                previousValue = null;
+            }
+
             function includeStyles() {
                 const styles = `
-            <style>
-                .table-container {
-            margin-top: 20px;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            background-color: #f9f9f9;
-            width:780px;
-        }
+                    <style>
+                        .table-container.scale-selected {
+                            background-color: #e0e0e0;
+                        }
 
-        .table-header {
-            font-size: 15.2px;
-            margin-bottom: 10px;
-        }
+                        .table-container.ordinal {
+                            border: 1px solid #ddd;
+                            background-color: #82d64d;
+                        }
 
-        .info-line {
-            font-size: 1.1em;
-            margin-bottom: 10px;
-        }
+                        .table-container.nominal {
+                            border: 1px solid #ddd;
+                            background-color: #a3a3a3;
+                        }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th,
-        td {
-            padding: 10px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-
-        th {
-            background-color: #f2f2f2;
-        }
-
-        .varName {
-            float: right;
-        }
-            </style>
-        `;
+                        .table-container.multiple-options {
+                            background-color: #ffc0cb;
+                        }
+                    </style>
+                `;
                 return styles;
             }
-
-
 
             function downloadRightHalf() {
                 const rightHalfContent = document.querySelector('.right-half').innerHTML; // Get the HTML content of the right half
@@ -333,19 +383,19 @@
 
                 // Combine the right half content with the included styles
                 const combinedHTML = `
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Output</title>
-            ${styles}
-        </head>
-        <body>
-            ${rightHalfContent}
-        </body>
-        </html>
-    `;
+                    <!DOCTYPE html>
+                    <html lang="en">
+                    <head>
+                        <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <title>Output</title>
+                        ${styles}
+                    </head>
+                    <body>
+                        ${rightHalfContent}
+                    </body>
+                    </html>
+                `;
 
                 // Display the right half content
                 const rightHalfWindow = window.open('', '_blank');
@@ -360,8 +410,6 @@
                 link.download = 'output.html';
                 link.click();
             }
-
-
         </script>
 </body>
 
