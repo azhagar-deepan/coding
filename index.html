@@ -236,14 +236,17 @@
             const categoryInputsContainer = document.getElementById('category-inputs');
             const measurementLevel = document.getElementById('measurement-level').value;
             categoryInputsContainer.innerHTML = '';
-
+            if (measurementLevel === 'Scale' && numCategories > 1) {
+                alert("Num of categories for scale is 1.\n Use this only for missing values");
+                return;
+            }
 
             for (let i = 0; i < numCategories; i++) {
                 const div = document.createElement('div');
                 div.className = 'category-input';
                 div.innerHTML = `
-            <input type="number" placeholder="Number" ${measurementLevel === 'Scale' ? 'value="N/A" disabled' : ''} oninput="checkSubsequent(this)">
-            <input type="text" placeholder="Category" ${measurementLevel === 'Scale' ? 'value="N/A" disabled' : ''}>
+            <input type="number" placeholder="Number" ${measurementLevel === 'Scale' ? 'value="999"' : ''} oninput="checkSubsequent(this)">
+            <input type="text" placeholder="Category" ${measurementLevel === 'Scale' ? 'value="Missing"' : ''}>
         `;
                 categoryInputsContainer.appendChild(div);
             }
@@ -350,29 +353,32 @@
         </table>
     `;
 
+
             const categoryTableBody = tableContainer.querySelector('tbody');
             const categoryInputs = document.getElementById('category-inputs').querySelectorAll('.category-input');
-            code2 += "\n" + variableName;
 
-            categoryInputs.forEach((inputDiv, index) => {
-                const number = inputDiv.querySelector('input[type="number"]').value;
-                const category = inputDiv.querySelector('input[type="text"]').value;
+            if (numCategories !== '') {
+                code2 += "\n" + variableName;
+                categoryInputs.forEach((inputDiv, index) => {
+                    const number = inputDiv.querySelector('input[type="number"]').value;
+                    const category = inputDiv.querySelector('input[type="text"]').value;
 
-                // Create and append a new row to the table
-                const row = document.createElement('tr');
-                row.innerHTML = `<td>${number}</td><td>${category}</td>`;
-                categoryTableBody.appendChild(row);
+                    // Create and append a new row to the table
+                    const row = document.createElement('tr');
+                    row.innerHTML = `<td>${number}</td><td>${category}</td>`;
+                    categoryTableBody.appendChild(row);
 
-                if (category.toLowerCase().includes("missing")) {
-                    code3 += "\n" + variableName + `(${number})`
-                }
-                // Check if this is the last element in the NodeList
-                if (index < categoryInputs.length - 1) {
-                    code2 += `\n${number}  '${category}'`;
-                } else {
-                    code2 += `\n${number}  '${category}'/ `;
-                }
-            });
+                    if (category.toLowerCase().includes("missing")) {
+                        code3 += "\n" + variableName + `(${number})`
+                    }
+                    // Check if this is the last element in the NodeList
+                    if (index < categoryInputs.length - 1) {
+                        code2 += `\n${number}  '${category}'`;
+                    } else {
+                        code2 += `\n${number}  '${category}'/ `;
+                    }
+                });
+            }
 
 
             // Make the table container visible
