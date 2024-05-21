@@ -169,6 +169,7 @@
         let code1 = "VARIABLE LABELS";
         let code2 = "\nVALUE LABELS";
         let code3 = "\nMISSING VALUES";
+        let code4 = "\nVARIABLE LEVEL";
         let copied = 1;
 
         function isValidVariableName(variableName) {
@@ -311,6 +312,7 @@
             const measurementLevel = document.getElementById('measurement-level').value;
             let type = document.getElementById('type').value; // Retrieve the response type
             let numCategories = document.getElementById('num-categories').value; // Retrieve the number of categories
+            let NumCategories = document.getElementById('num-categories').value; // Retrieve the number of categories
             if (!isValidVariableName(variableName)) {
                 alert("Invalid variable name. Please correct it before saving.");
                 return;
@@ -357,7 +359,7 @@
             const categoryTableBody = tableContainer.querySelector('tbody');
             const categoryInputs = document.getElementById('category-inputs').querySelectorAll('.category-input');
 
-            if (numCategories !== '') {
+            if (NumCategories !== '') {
                 code2 += "\n" + variableName;
                 categoryInputs.forEach((inputDiv, index) => {
                     const number = inputDiv.querySelector('input[type="number"]').value;
@@ -378,6 +380,7 @@
                         code2 += `\n${number}  '${category}'/ `;
                     }
                 });
+                numCategories = ''
             }
 
 
@@ -403,9 +406,10 @@
 
 
             code1 += "\n" + variableName + " " + '"' + variableLabel + '"';
+            code4 += "\n" + variableName + " " + `(${measurementLevel}) /`;
 
             var textToCopy = document.getElementById('textToCopy');
-            textToCopy.innerText = code1 + "\n" + code2 + "\n" + code3;
+            textToCopy.innerText = code1 + "\n" + code2 + "\n" + code3 + "\n" + code4;
             // Clear the form inputs
             clearForm();
 
@@ -578,11 +582,11 @@
             code1 += ".";
             code2 += "."
             code3 += "."
-
+            code4 += "."
             if (copied === 1) {
                 copied = 0
                 var textToCopy = document.getElementById('textToCopy');
-                textToCopy.innerText = code1 + code2 + code3 + "\n" + "EXECUTE.";
+                textToCopy.innerText = code1 + code2 + code3 + code4 + "\n" + "EXECUTE.";
                 var textToCopy = document.getElementById('textToCopy').innerText;
             }
 
