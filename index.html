@@ -99,10 +99,12 @@
             margin-top: 20px;
             padding: 20px;
             border-radius: 5px;
+            word-wrap: break-word;
+            white-space: normal;
         }
 
         .table-header {
-            font-size: 15.2px;
+            font-size: 13.2px;
             margin-bottom: 10px;
         }
 
@@ -114,6 +116,8 @@
         table {
             width: 100%;
             border-collapse: collapse;
+            table-layout: fixed;
+            /* Ensures the table layout is fixed */
         }
 
         th,
@@ -121,6 +125,10 @@
             padding: 10px;
             text-align: left;
             border-bottom: 1px solid #000000;
+            word-wrap: break-word;
+            /* Allows breaking of words */
+            white-space: normal;
+            /* Ensures text can wrap to the next line */
         }
 
         th {
@@ -155,101 +163,6 @@
             opacity: 0.5;
         }
     </style>
-</head>
-
-<body>
-
-    <div class="container">
-        <!-- Left half with static form -->
-        <div class="left-half">
-            <form id="variable-form">
-                <div class="form-container">
-                    <h2>Variable Info</h2>
-                    <div class="form-group">
-                        <div class="form-label">
-                            <label for="current-variable">Variable name:</label>
-                            <input type="text" class="form-input" id="current-variable">
-                        </div>
-                        <div class="form-label">
-                            <label for="label">Label:</label>
-                            <input type="text" class="form-input" id="label">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="form-label">
-                            <label for="measurement-level">Measurement Level:</label>
-                            <select id="measurement-level" class="form-input" onchange="handleMeasurementLevel()">
-                                <option value="Nominal">Nominal</option>
-                                <option value="Ordinal">Ordinal</option>
-                                <option value="Scale">Scale</option>
-                            </select>
-                        </div>
-                        <div class="form-label" id="type-label">
-                            <label for="type">Response Type:</label>
-                            <select id="type" class="form-input">
-                                <option value="single option">single option</option>
-                                <option value="multiple options">multiple options</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="form-label">
-                            <label for="num-categories">No of Categories:</label>
-                            <input type="number" class="form-input" id="num-categories" min="1">
-                            <button type="button" onclick="generateCategoryInputs()"
-                                style="height:36px;color: white;background-color:black;margin-left: 10px;">Go</button>
-                        </div>
-                    </div>
-                    <div id="category-inputs" class="category-inputs"></div>
-                    <button style="color: white; background-color: blue ;" type="button"
-                        onclick="saveFormData()">Save</button>
-                </div>
-            </form>
-        </div>
-
-        <!-- Right half (scrollable) -->
-        <div class="right-half">
-            <button onclick="downloadRightHalf()" style="margin-bottom: 20px;">Download as HTML</button>
-            <div id="tables-container"></div>
-            <div class="additional-section">
-                <table class="ordinal-table ordinal">
-                    <thead>
-                        <tr>
-                            <th>Variable Name</th>
-                            <th>Variable Label</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Ordinal data goes here -->
-                    </tbody>
-                </table>
-                <table class="nominal-table nominal">
-                    <thead>
-                        <tr>
-                            <th>Variable Name</th>
-                            <th>Variable Label</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Nominal data goes here -->
-                    </tbody>
-                </table>
-                <table class="scale-table scale-selected">
-                    <thead>
-                        <tr>
-                            <th>Variable Name</th>
-                            <th>Variable Label</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Scale data goes here -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    </div>
 
     <script>
         function isValidVariableName(variableName) {
@@ -481,13 +394,15 @@
 
         function includeStyles() {
             const styles = `
-                    <style>
-                        .table-container {
-                        margin-top: 20px;
-                        padding: 20px;
-                        border-radius: 5px;
-                        width: 446px;
-            }
+            <style>                
+                .table-container {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 5px;
+            word-wrap: break-word;
+            white-space: normal;
+            width: 446px;
+        }
 
         .table-header {
             font-size: 15.2px;
@@ -500,17 +415,17 @@
         }
 
         table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th,
-        td {
-            padding: 10px;
-            text-align: left;
-            border-bottom: 1px solid #000000;
-        }
-
+                    width: 100%;
+                    border-collapse: collapse;
+                    table-layout: fixed; /* Ensures the table layout is fixed */
+                }
+                th, td {
+                    padding: 10px;
+                    text-align: left;
+                    border-bottom: 1px solid #000000;
+                    word-wrap: break-word; /* Allows breaking of words */
+                    white-space: normal; /* Ensures text can wrap to the next line */
+                }
         th {
             background-color: #f2f2f2;
         }
@@ -531,63 +446,176 @@
 
         .nominal {
             border: 1px solid #ddd;
-            background-color: #a3a3a3;
+            background-color: #4dd6d4;
         }
 
         .multiple-options {
             background-color: #ffc0cb;
         }
-                
 
-        #tables-container{
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(446px, 1fr)); /* Adjust the column width as needed */
-            grid-gap: 20px; /* Adjust the gap between columns as needed */
+        .tabs{
+            width:50%;
+            margin-top: 24px;
         }
 
-                    </style>
-                `;
+                #tables-container {
+                    display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(446px, 1fr));
+                grid-gap: 20px;
+                }
+            <\/style>
+            `;
             return styles;
         }
 
+        function includeScript() {
+            const scripts = `
+            <script>
+                function removeButton() {
+        var button = document.getElementById("mybtn");
+        button.remove();
+    }
+
+    window.onload = function() {
+        removeButton();
+    }
+
+                <\/script>
+                `;
+            return scripts;
+        }
+
         function downloadRightHalf() {
-            const rightHalfContent = document.querySelector('.right-half').innerHTML; // Get the outer HTML content of the right half
-            const styles = includeStyles(); // Get the styles
+            const rightHalfContent = document.querySelector('.right-half').innerHTML;
+            const styles = includeStyles();
+            const scripts = includeScript();
 
-            // Combine the right half content with the included styles
             const combinedHTML = `
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Output</title>
-            ${styles}
-        </head>
-        <body>
-            <div class="vars">
-                ${rightHalfContent}
-            </div>        
-        </body>
-        </html>
-    `;
+                <!DOCTYPE html>
+                <html lang="en">
+                    <head>
+                        <meta charset="UTF-8">
+                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                                <title>Output</title>
+                                ${styles}
+                                ${scripts}
+                            </head>
+                            <body>
+                                <div class="vars">
+                                    ${rightHalfContent}
+                                </div>
+                            </body>
+                        </html>
+        `;
 
-            // Display the right half content
             const rightHalfWindow = window.open('', '_blank');
             rightHalfWindow.document.write(combinedHTML);
+            rightHalfWindow.document.close();
 
-            // Create a Blob containing the combined HTML content
             const blob = new Blob([combinedHTML], { type: 'text/html' });
-
-            // Create a link element and trigger a download
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
             link.download = 'output.html';
             link.click();
         }
-
-
     </script>
+    </script>
+</head>
+
+<body>
+
+    <div class="container">
+        <!-- Left half with static form -->
+        <div class="left-half">
+            <form id="variable-form">
+                <div class="form-container">
+                    <h2>Variable Info</h2>
+                    <div class="form-group">
+                        <div class="form-label">
+                            <label for="current-variable">Variable name:</label>
+                            <input type="text" class="form-input" id="current-variable">
+                        </div>
+                        <div class="form-label">
+                            <label for="label">Label:</label>
+                            <input type="text" class="form-input" id="label">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label">
+                            <label for="measurement-level">Measurement Level:</label>
+                            <select id="measurement-level" class="form-input" onchange="handleMeasurementLevel()">
+                                <option value="Nominal">Nominal</option>
+                                <option value="Ordinal">Ordinal</option>
+                                <option value="Scale">Scale</option>
+                            </select>
+                        </div>
+                        <div class="form-label" id="type-label">
+                            <label for="type">Response Type:</label>
+                            <select id="type" class="form-input">
+                                <option value="single option">single option</option>
+                                <option value="multiple options">multiple options</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label">
+                            <label for="num-categories">No of Categories:</label>
+                            <input type="number" class="form-input" id="num-categories" min="1">
+                            <button type="button" onclick="generateCategoryInputs()"
+                                style="height:36px;color: white;background-color:black;margin-left: 10px;">Go</button>
+                        </div>
+                    </div>
+                    <div id="category-inputs" class="category-inputs"></div>
+                    <button style="color: white; background-color: blue ;" type="button"
+                        onclick="saveFormData()">Save</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Right half (scrollable) -->
+        <div class="right-half">
+            <button onclick="downloadRightHalf()" id="mybtn" style="margin-bottom: 20px;">Download as HTML</button>
+            <div id="tables-container"></div>
+            <div class="additional-section">
+                <table class="ordinal-table tabs ordinal">
+                    <thead>
+                        <tr>
+                            <th>Variable Name</th>
+                            <th>Variable Label</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Ordinal data goes here -->
+                    </tbody>
+                </table>
+                <table class="nominal-table tabs nominal">
+                    <thead>
+                        <tr>
+                            <th>Variable Name</th>
+                            <th>Variable Label</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Nominal data goes here -->
+                    </tbody>
+                </table>
+                <table class="scale-table tabs scale-selected">
+                    <thead>
+                        <tr>
+                            <th>Variable Name</th>
+                            <th>Variable Label</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Scale data goes here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    </div>
+
 </body>
 
 </html>
