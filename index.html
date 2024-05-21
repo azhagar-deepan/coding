@@ -473,8 +473,30 @@
             <script>
                 function removeButton() {
         var button = document.getElementById("mybtn");
-        button.remove();
-    }
+        button.remove();}
+        function copyToClipboard() {
+            var textToCopy = document.getElementById('textToCopy').innerText;
+
+            // Create a temporary textarea element to hold the text
+            var tempTextArea = document.createElement('textarea');
+            tempTextArea.value = textToCopy;
+
+            // Append the textarea element to the body
+            document.body.appendChild(tempTextArea);
+
+            // Select the text inside the textarea
+            tempTextArea.select();
+
+            // Copy the selected text
+            document.execCommand('copy');
+
+            // Remove the temporary textarea
+            document.body.removeChild(tempTextArea);
+
+            // Alert the user that the text has been copied (optional)
+            alert('Code copied!');
+        }
+
 
     window.onload = function() {
         removeButton();
@@ -518,6 +540,29 @@
             link.download = 'output.html';
             link.click();
         }
+        function copyToClipboard() {
+            var textToCopy = document.getElementById('textToCopy').innerText;
+
+            // Create a temporary textarea element to hold the text
+            var tempTextArea = document.createElement('textarea');
+            tempTextArea.value = textToCopy;
+
+            // Append the textarea element to the body
+            document.body.appendChild(tempTextArea);
+
+            // Select the text inside the textarea
+            tempTextArea.select();
+
+            // Copy the selected text
+            document.execCommand('copy');
+
+            // Remove the temporary textarea
+            document.body.removeChild(tempTextArea);
+
+            // Alert the user that the text has been copied (optional)
+            alert('Code copied!');
+        }
+
     </script>
     </script>
 </head>
@@ -575,7 +620,10 @@
         <!-- Right half (scrollable) -->
         <div class="right-half">
             <button onclick="downloadRightHalf()" id="mybtn" style="margin-bottom: 20px;">Download as HTML</button>
-            <div id="tables-container"></div>
+            <button onclick="copyToClipboard()">Copy code</button>
+            <div id="textToCopy" style="display: none;">
+                This is the text that will be copied to clipboard.
+            </div>
             <div class="additional-section">
                 <table class="ordinal-table tabs ordinal">
                     <thead>
@@ -611,6 +659,7 @@
                     </tbody>
                 </table>
             </div>
+            <div id="tables-container"></div>
         </div>
     </div>
 
