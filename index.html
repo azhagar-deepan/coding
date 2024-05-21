@@ -165,6 +165,12 @@
     </style>
 
     <script>
+        let previousValue = null;
+        let code1 = "VARIABLE LABELS";
+        let code2 = "\nVALUE LABELS";
+        let code3 = "\nMISSING VALUES";
+        let copied = 1;
+
         function isValidVariableName(variableName) {
             // Check if the variable name is not empty
             if (variableName.trim() === '') {
@@ -223,8 +229,6 @@
         }
 
         validateVariableNameOnInput();
-
-        let previousValue = null;
 
 
         function generateCategoryInputs() {
@@ -348,14 +352,28 @@
 
             const categoryTableBody = tableContainer.querySelector('tbody');
             const categoryInputs = document.getElementById('category-inputs').querySelectorAll('.category-input');
-            categoryInputs.forEach(inputDiv => {
+            code2 += "\n" + variableName;
+
+            categoryInputs.forEach((inputDiv, index) => {
                 const number = inputDiv.querySelector('input[type="number"]').value;
                 const category = inputDiv.querySelector('input[type="text"]').value;
 
+                // Create and append a new row to the table
                 const row = document.createElement('tr');
                 row.innerHTML = `<td>${number}</td><td>${category}</td>`;
                 categoryTableBody.appendChild(row);
+
+                if (category.toLowerCase().includes("missing")) {
+                    code3 += "\n" + variableName + `(${number})`
+                }
+                // Check if this is the last element in the NodeList
+                if (index < categoryInputs.length - 1) {
+                    code2 += `\n${number}  '${category}'`;
+                } else {
+                    code2 += `\n${number}  '${category}'/ `;
+                }
             });
+
 
             // Make the table container visible
             tableContainer.style.display = 'block';
@@ -376,9 +394,17 @@
             // Populate the tables based on measurement level
             appendRowToTable(measurementLevel.toLowerCase() + "-table", variableName, variableLabel);
 
+
+
+            code1 += "\n" + variableName + " " + '"' + variableLabel + '"';
+
+            var textToCopy = document.getElementById('textToCopy');
+            textToCopy.innerText = code1 + "\n" + code2 + "\n" + code3;
             // Clear the form inputs
             clearForm();
+
         }
+
 
 
         function clearForm() {
@@ -508,6 +534,8 @@
         }
 
         function downloadRightHalf() {
+            copyToClipboard()
+
             const rightHalfContent = document.querySelector('.right-half').innerHTML;
             const styles = includeStyles();
             const scripts = includeScript();
@@ -541,7 +569,16 @@
             link.click();
         }
         function copyToClipboard() {
-            var textToCopy = document.getElementById('textToCopy').innerText;
+            code1 += ".";
+            code2 += "."
+            code3 += "."
+
+            if (copied === 1) {
+                copied = 0
+                var textToCopy = document.getElementById('textToCopy');
+                textToCopy.innerText = code1 + code2 + code3 + "\n" + "EXECUTE.";
+                var textToCopy = document.getElementById('textToCopy').innerText;
+            }
 
             // Create a temporary textarea element to hold the text
             var tempTextArea = document.createElement('textarea');
@@ -617,13 +654,11 @@
             </form>
         </div>
 
+
         <!-- Right half (scrollable) -->
         <div class="right-half">
             <button onclick="downloadRightHalf()" id="mybtn" style="margin-bottom: 20px;">Download as HTML</button>
             <button onclick="copyToClipboard()">Copy code</button>
-            <div id="textToCopy" style="display: none;">
-                This is the text that will be copied to clipboard.
-            </div>
             <div class="additional-section">
                 <table class="ordinal-table tabs ordinal">
                     <thead>
@@ -660,7 +695,13 @@
                 </table>
             </div>
             <div id="tables-container"></div>
+            <code>
+                <h3 style="font-family: 'Courier New', Courier, monospace;"><b>SPSS SYNTAX</b></h3>
+                <div id="textToCopy"
+                style="background-color: black; color: white; font-family: 'Courier New', Courier, monospace; padding: 10px;">
+            </div></code>
         </div>
+
     </div>
 
     </div>
