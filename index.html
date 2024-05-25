@@ -59,6 +59,18 @@
             margin-right: 10px;
         }
 
+        #description {
+            height: 100px;
+            width: 106%;
+            resize: none;
+            overflow-wrap: break-word;
+            white-space: pre-wrap;
+            padding: 5px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+
         .form-input {
             width: 100%;
             padding: 10px;
@@ -74,7 +86,7 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
-            max-height: 200px;
+            max-height: 100px;
             /* Set the maximum height */
             overflow-y: auto;
             /* Enable vertical scrolling */
@@ -170,7 +182,10 @@
         let code2 = "\nVALUE LABELS";
         let code3 = "\nMISSING VALUES";
         let code4 = "\nVARIABLE LEVEL";
+        let prev_cate = null;
         let copied = 1;
+
+
 
         function isValidVariableName(variableName) {
             // Check if the variable name is not empty
@@ -253,20 +268,41 @@
             }
         }
 
+
         function handleMeasurementLevel() {
             const measurementLevel = document.getElementById('measurement-level').value;
             const typeLabel = document.getElementById('type-label');
+            const rangeContainer = document.getElementById('rangeContainer');
+            const typeElement = document.getElementById('type');
 
             if (measurementLevel === 'Scale' || measurementLevel === 'Ordinal') {
                 typeLabel.classList.add('disabled');
-                document.getElementById('type').value = 'single option';
-                document.getElementById('type').disabled = true;
-            } else {
-                typeLabel.classList.remove('disabled');
-                document.getElementById('type').disabled = false;
-            }
+                typeElement.value = 'single option';
+                typeElement.disabled = true;
 
-            // Generate category inputs with "N/A" if the level is Scale
+                if (measurementLevel === 'Scale') {
+                    typeLabel.style.display = 'none';
+
+                    rangeContainer.innerHTML = `
+
+                    <div class="form-label">
+                            <label for="current-variable">Range & SI unit:</label>
+                            <input  class="form-input" style="width:55px;  type="text" id="low" placeholder="Low">-
+                            <input  class="form-input" style="width:55px;  type="text" id="high" placeholder="High">
+                            <input  class="form-input" style="width:55px; margin:0 5px" type="text" id="units" placeholder="units">                            
+                        </div>
+                            
+                    `;
+                } else {
+                    rangeContainer.innerHTML = ''; // Clear the range inputs if the value is not 'Scale'
+                    typeLabel.style.display = 'flex';
+                }
+            } else {
+                typeLabel.style.display = 'flex';
+                typeLabel.classList.remove('disabled');
+                typeElement.disabled = false;
+                rangeContainer.innerHTML = ''; // Clear the range inputs if the value is not 'Scale'
+            }
             generateCategoryInputs();
         }
 
@@ -307,10 +343,13 @@
         }
 
         function saveFormData() {
+            let range_units = '';
+            let type = 'N/A'
             const variableName = document.getElementById('current-variable').value;
             const variableLabel = document.getElementById('label').value;
+            const description = document.getElementById('description').value;
             const measurementLevel = document.getElementById('measurement-level').value;
-            let type = document.getElementById('type').value; // Retrieve the response type
+
             let numCategories = document.getElementById('num-categories').value; // Retrieve the number of categories
             let NumCategories = document.getElementById('num-categories').value; // Retrieve the number of categories
             if (!isValidVariableName(variableName)) {
@@ -321,6 +360,13 @@
             if (measurementLevel === 'Scale') {
                 type = 'N/A';
                 numCategories = 'N/A';
+                low = document.getElementById('low').value;
+                high = document.getElementById('high').value;
+                units = document.getElementById('units').value;
+                range_units = `<strong>Range:</strong> <span>${low}-${high}<em><b>(${units})</b></em></span><br>`;
+            }
+            else {
+                type = document.getElementById('type').value; // Retrieve the response type
             }
 
             if (measurementLevel === 'Ordinal') {
@@ -336,9 +382,11 @@
 
             tableContainer.innerHTML = `
         <div class="table-header">
-            <strong> <span class="varName">${variableName}</span></strong><br>
-            <em>Variable Label:</em> <span>${variableLabel}</span><br>
+            <strong> <span class="varName">${variableName}</span></strong><br>            
             <span class="info-line">
+                ${range_units}
+                <strong>Variable Label:</strong> <span><em>${variableLabel}</em></span><br>
+                <strong>Description:</strong> <span>${description}</span><br>
                 <strong>Level of Measurement:</strong> <span>${measurementLevel}</span><br>
                 <strong>Response Type:</strong> <span>${type}</span><br>
                 <strong>Number of Categories:</strong> <span>${numCategories}</span><br>
@@ -357,7 +405,15 @@
 
 
             const categoryTableBody = tableContainer.querySelector('tbody');
-            const categoryInputs = document.getElementById('category-inputs').querySelectorAll('.category-input');
+            let categoryInputs;
+
+            // Use previous category inputs if numCategories is -1
+            if (numCategories == '-1' && prev_cate) {
+                categoryInputs = prev_cate;
+            } else {
+                categoryInputs = document.getElementById('category-inputs').querySelectorAll('.category-input');
+                prev_cate = Array.from(categoryInputs); // Save the current category inputs for future use
+            }
 
             if (NumCategories !== '') {
                 code2 += "\n" + variableName;
@@ -420,6 +476,7 @@
         function clearForm() {
             document.getElementById('current-variable').value = '';
             document.getElementById('label').value = '';
+            document.getElementById('description').value = '';
             document.getElementById('num-categories').value = '';
             document.getElementById('type').value = 'single option';
             document.getElementById('category-inputs').innerHTML = '';
@@ -493,12 +550,15 @@
             width:50%;
             margin-top: 24px;
         }
+        #tables-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(446px, 1fr));
+    grid-gap: 20px;
+    align-items: start; /* Align items at the start of each row */
+    grid-auto-rows: auto; /* Automatically adjust row height based on content */
+}
 
-                #tables-container {
-                    display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(446px, 1fr));
-                grid-gap: 20px;
-                }
+
             <\/style>
             `;
             return styles;
@@ -629,18 +689,24 @@
                         </div>
                         <div class="form-label">
                             <label for="label">Label:</label>
-                            <input type="text" class="form-input" id="label">
+                            <input type="text" class="form-input" maxlength="70" id="label">
+                        </div>
+                        <div class="form-label">
+                            <label for="label" style="margin-bottom: 75px;">Description:</label>
+                            <textarea id="description" maxlength="300"></textarea>
                         </div>
                     </div>
-                    <div class="form-group">
+
+                    <div class=" form-group">
                         <div class="form-label">
                             <label for="measurement-level">Measurement Level:</label>
-                            <select id="measurement-level" class="form-input" onchange="handleMeasurementLevel()">
+                            <select id="measurement-level" class="form-input" onchange="handleMeasurementLevel()"><br>
                                 <option value="Nominal">Nominal</option>
                                 <option value="Ordinal">Ordinal</option>
                                 <option value="Scale">Scale</option>
                             </select>
                         </div>
+                        <div style="display: flex;" id="rangeContainer"></div>
                         <div class="form-label" id="type-label">
                             <label for="type">Response Type:</label>
                             <select id="type" class="form-input">
@@ -708,7 +774,12 @@
             <code>
                 <h3 style="font-family: 'Courier New', Courier, monospace;"><b>SPSS SYNTAX</b></h3>
                 <div id="textToCopy"
-                style="background-color: black; color: white; font-family: 'Courier New', Courier, monospace; padding: 10px;">
+                style="background-color: black; color: white; font-family: 'Courier New', Courier, monospace; padding: 10px; overflow-y: auto; max-height: 300px;">
+            </div></code>
+            <code>
+                <h3 style="font-family: 'Courier New', Courier, monospace;"><b>FORM APPS SCRIPT</b></h3>
+                <div id="codeToCopy"
+                style="background-color: rgb(0, 0, 0); color: rgb(6, 249, 26); font-family: 'Courier New', Courier, monospace; padding: 10px; overflow-y: auto; max-height: 300px;">
             </div></code>
         </div>
 
