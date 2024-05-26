@@ -799,21 +799,10 @@
             <button onclick="copyToClipboard('s')">Copy SPSS Syntax</button>
             <button onclick="copyToClipboard('f')">Copy Form Script</button>
             <div class="additional-section">
-                <table class="ordinal-table tabs ordinal">
-                    <thead>
-                        <tr>
-                            <th>Variable Name</th>
-                            <th>Variable Label</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Ordinal data goes here -->
-                    </tbody>
-                </table>
                 <table class="nominal-table tabs nominal">
                     <thead>
                         <tr>
-                            <th>Variable Name</th>
+                            <th>Variable Name (Nominal)</th>
                             <th>Variable Label</th>
                         </tr>
                     </thead>
@@ -821,10 +810,21 @@
                         <!-- Nominal data goes here -->
                     </tbody>
                 </table>
+                <table class="ordinal-table tabs ordinal">
+                    <thead>
+                        <tr>
+                            <th>Variable Name (Ordinal)</th>
+                            <th>Variable Label</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Ordinal data goes here -->
+                    </tbody>
+                </table>
                 <table class="scale-table tabs scale-selected">
                     <thead>
                         <tr>
-                            <th>Variable Name</th>
+                            <th>Variable Name (Scale)</th>
                             <th>Variable Label</th>
                         </tr>
                     </thead>
