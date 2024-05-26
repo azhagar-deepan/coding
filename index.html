@@ -183,7 +183,7 @@
         let code3 = "\nMISSING VALUES";
         let code4 = "\nVARIABLE LEVEL";
 
-        let codef = "var form = FormApp.create('Title of the survey');\nform.setDescription('Add Description if required');";
+        let codef = "var form = FormApp.create('Questionnaire');";
         let prev_cate = null;
         let copied = 1;
 
@@ -509,7 +509,8 @@
                     formCode = `
             var textItem = form.addTextItem()
                 .setTitle(\`\n${variableName}\`)
-                .setHelpText(\`${variableLabel} (${units})\`);`
+                .setHelpText(\`${variableLabel} (${units})\`)
+                .requireNumber();`
                 }
             }
 
@@ -616,13 +617,16 @@
                 function removeButton() {
         var button = document.getElementById("mybtn");
         button.remove();}
-        function copyToClipboard() {
+        function copyToClipboard(letter) {
+
             var textToCopy = document.getElementById('textToCopy').innerText;
-
-            // Create a temporary textarea element to hold the text
+            var codeToCopy = document.getElementById('codeToCopy').innerText;
             var tempTextArea = document.createElement('textarea');
-            tempTextArea.value = textToCopy;
-
+            if (letter === 's') {
+                tempTextArea.value = textToCopy;
+            } else {
+                tempTextArea.value = codeToCopy;
+            }
             // Append the textarea element to the body
             document.body.appendChild(tempTextArea);
 
@@ -684,47 +688,50 @@
             link.download = 'output.html';
             link.click();
         }
-        function copyToClipboard() {
-            code1 += ".";
-            code2 += "."
-            code3 += "."
-            code4 += "."
 
-            code_Last = `Logger.log('Form URL: ' + form.getPublishedUrl());
-            Logger.log('Form Edit URL: ' + form.getEditUrl());`;
+        function copyToClipboard(letter) {
+            const code_Last = `\nLogger.log('Form URL: ' + form.getPublishedUrl());
+            \nLogger.log('Form Edit URL: ' + form.getEditUrl());`;
             //MailApp.sendEmail(Session.getActiveUser().getEmail(), 'Your Google Form', 'Form URL: ' + form.getPublishedUrl() + '\\nForm Edit URL: ' + form.getEditUrl());
-
+            let textToCopy, codeToCopy;
 
             if (copied === 1) {
-                copied = 0
-                var textToCopy = document.getElementById('textToCopy');
-                textToCopy.innerText = code1 + code2 + code3 + code4 + "\n" + "EXECUTE.";
-                var textToCopy = document.getElementById('textToCopy').innerText;
+                copied = 0;
+
+                code1 += ".";
+                code2 += ".";
+                code3 += ".";
+                code4 += ".";
+                textToCopy = code1 + code2 + code3 + code4 + "\n" + "EXECUTE.";
+                var spss_field = document.getElementById('textToCopy');
+                spss_field.innerText = textToCopy;
+
                 codef += code_Last;
-                codeToCopy.innerText = codef;
+                codeToCopy = codef;
+                var form_field = document.getElementById('codeToCopy');
+                form_field.innerText = codeToCopy;
+
+            } else {
+                textToCopy = document.getElementById('textToCopy').innerText;
+                codeToCopy = document.getElementById('codeToCopy').innerText;
             }
 
-            // Create a temporary textarea element to hold the text
-            var tempTextArea = document.createElement('textarea');
-            tempTextArea.value = textToCopy;
 
-            // Append the textarea element to the body
+            const tempTextArea = document.createElement('textarea');
+            if (letter === 's') {
+                tempTextArea.value = textToCopy;
+            } else {
+                tempTextArea.value = codeToCopy;
+            }
+
             document.body.appendChild(tempTextArea);
-
-            // Select the text inside the textarea
             tempTextArea.select();
-
-            // Copy the selected text
             document.execCommand('copy');
-
-            // Remove the temporary textarea
             document.body.removeChild(tempTextArea);
 
-            // Alert the user that the text has been copied (optional)
             alert('Code copied!');
         }
 
-    </script>
     </script>
 </head>
 
@@ -788,7 +795,8 @@
         <!-- Right half (scrollable) -->
         <div class="right-half">
             <button onclick="downloadRightHalf()" id="mybtn" style="margin-bottom: 20px;">Download as HTML</button>
-            <button onclick="copyToClipboard()">Copy code</button>
+            <button onclick="copyToClipboard('s')">Copy SPSS Syntax</button>
+            <button onclick="copyToClipboard('f')">Copy Form Script</button>
             <div class="additional-section">
                 <table class="ordinal-table tabs ordinal">
                     <thead>
