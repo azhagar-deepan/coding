@@ -691,8 +691,9 @@
 
         function copyToClipboard(letter) {
             const code_Last = `\nLogger.log('Form URL: ' + form.getPublishedUrl());
-            \nLogger.log('Form Edit URL: ' + form.getEditUrl());`;
-            //MailApp.sendEmail(Session.getActiveUser().getEmail(), 'Your Google Form', 'Form URL: ' + form.getPublishedUrl() + '\\nForm Edit URL: ' + form.getEditUrl());
+            Logger.log('Form Edit URL: ' + form.getEditUrl());
+            MailApp.sendEmail(Session.getActiveUser().getEmail(), 'Your Google Form', 'Form URL: ' + form.getPublishedUrl() + '\\nForm Edit URL: ' + form.getEditUrl());`;
+
             let textToCopy, codeToCopy;
 
             if (copied === 1) {
