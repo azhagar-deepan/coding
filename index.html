@@ -182,6 +182,8 @@
         let code2 = "\nVALUE LABELS";
         let code3 = "\nMISSING VALUES";
         let code4 = "\nVARIABLE LEVEL";
+
+        let codef = "var form = FormApp.create('Title of the survey');\nform.setDescription('Add Description if required');";
         let prev_cate = null;
         let copied = 1;
 
@@ -286,12 +288,11 @@
                     rangeContainer.innerHTML = `
 
                     <div class="form-label">
-                            <label for="current-variable">Range & SI unit:</label>
-                            <input  class="form-input" style="width:55px;  type="text" id="low" placeholder="Low">-
-                            <input  class="form-input" style="width:55px;  type="text" id="high" placeholder="High">
-                            <input  class="form-input" style="width:55px; margin:0 5px" type="text" id="units" placeholder="units">                            
-                        </div>
-                            
+                    <label for="current-variable">Range & SI unit:</label>
+                    <input class="form-input" style="width:55px;" type="text" id="low" placeholder="Low">-
+                    <input class="form-input" style="width:55px;" type="text" id="high" placeholder="High">
+                    <input class="form-input" style="width:55px; margin:0 5px;" type="text" id="units" placeholder="units">
+                    </div>                            
                     `;
                 } else {
                     rangeContainer.innerHTML = ''; // Clear the range inputs if the value is not 'Scale'
@@ -344,29 +345,34 @@
 
         function saveFormData() {
             let range_units = '';
-            let type = 'N/A'
+            let type = 'N/A';
+
             const variableName = document.getElementById('current-variable').value;
             const variableLabel = document.getElementById('label').value;
             const description = document.getElementById('description').value;
             const measurementLevel = document.getElementById('measurement-level').value;
 
-            let numCategories = document.getElementById('num-categories').value; // Retrieve the number of categories
-            let NumCategories = document.getElementById('num-categories').value; // Retrieve the number of categories
+            let numCategories = document.getElementById('num-categories').value;
+            let NumCategories = document.getElementById('num-categories').value;
+
             if (!isValidVariableName(variableName)) {
                 alert("Invalid variable name. Please correct it before saving.");
                 return;
             }
+
             // If the measurement level is 'Scale', set the response type to 'N/A' and number of categories to 'N/A'
             if (measurementLevel === 'Scale') {
                 type = 'N/A';
                 numCategories = 'N/A';
                 low = document.getElementById('low').value;
                 high = document.getElementById('high').value;
-                units = document.getElementById('units').value;
-                range_units = `<strong>Range:</strong> <span>${low}-${high}<em><b>(${units})</b></em></span><br>`;
-            }
-            else {
-                type = document.getElementById('type').value; // Retrieve the response type
+                units = (document.getElementById('units').value) ? document.getElementById('units').value : "units";
+
+                if (low && high) {
+                    range_units = `<strong>Range:</strong> <span>${low}-${high}<em><b>(${units})</b></em></span><br>`;
+                }
+            } else {
+                type = document.getElementById('type').value;
             }
 
             if (measurementLevel === 'Ordinal') {
@@ -375,7 +381,6 @@
 
             const tablesContainer = document.getElementById('tables-container');
 
-            // Create a new table container
             const tableContainer = document.createElement('div');
             tableContainer.className = 'table-container';
             tablesContainer.appendChild(tableContainer);
@@ -403,47 +408,46 @@
         </table>
     `;
 
-
             const categoryTableBody = tableContainer.querySelector('tbody');
             let categoryInputs;
+            const categories = [];
 
-            // Use previous category inputs if numCategories is -1
             if (numCategories == '-1' && prev_cate) {
                 categoryInputs = prev_cate;
             } else {
                 categoryInputs = document.getElementById('category-inputs').querySelectorAll('.category-input');
-                prev_cate = Array.from(categoryInputs); // Save the current category inputs for future use
+                prev_cate = Array.from(categoryInputs);
             }
 
+            let code_text = variableLabel;
             if (NumCategories !== '') {
                 code2 += "\n" + variableName;
                 categoryInputs.forEach((inputDiv, index) => {
                     const number = inputDiv.querySelector('input[type="number"]').value;
                     const category = inputDiv.querySelector('input[type="text"]').value;
 
-                    // Create and append a new row to the table
+                    code_text += `\n${number}\t${category}`;
+
+                    categories.push(`item.createChoice('${number}')`);
+
                     const row = document.createElement('tr');
                     row.innerHTML = `<td>${number}</td><td>${category}</td>`;
                     categoryTableBody.appendChild(row);
 
                     if (category.toLowerCase().includes("missing")) {
-                        code3 += "\n" + variableName + `(${number})`
+                        code3 += "\n" + variableName + `(${number})`;
                     }
-                    // Check if this is the last element in the NodeList
                     if (index < categoryInputs.length - 1) {
                         code2 += `\n${number}  '${category}'`;
                     } else {
                         code2 += `\n${number}  '${category}'/ `;
                     }
                 });
-                numCategories = ''
+                numCategories = '';
             }
 
-
-            // Make the table container visible
             tableContainer.style.display = 'block';
 
-            // Check for measurement level and apply styles accordingly
             if (measurementLevel === 'Scale') {
                 tableContainer.classList.add('scale-selected');
             } else if (measurementLevel === 'Nominal') {
@@ -456,22 +460,64 @@
                 tableContainer.classList.add('multiple-options');
             }
 
-            // Populate the tables based on measurement level
             appendRowToTable(measurementLevel.toLowerCase() + "-table", variableName, variableLabel);
-
-
 
             code1 += "\n" + variableName + " " + '"' + variableLabel + '"';
             code4 += "\n" + variableName + " " + `(${measurementLevel}) /`;
 
-            var textToCopy = document.getElementById('textToCopy');
+            const textToCopy = document.getElementById('textToCopy');
             textToCopy.innerText = code1 + "\n" + code2 + "\n" + code3 + "\n" + code4;
-            // Clear the form inputs
+
+            const codeToCopy = document.getElementById('codeToCopy');
+            var choiceList = "[\n" + categories.join(',\n') + "\n]";
+
+            let formCode;
+            if (measurementLevel === "Nominal") {
+                if (NumCategories) {
+                    const obj = (type === "single option") ? "addMultipleChoiceItem()" : "addCheckboxItem()";
+                    formCode = `                    
+                var item = form.${obj};
+                item.setTitle(\`\n${variableName}\`)
+                    \t.setHelpText(\`${code_text}\`)
+                    \t.setChoices(${choiceList});
+            `;
+                } else {
+                    formCode = `                    
+            form.addTextItem()
+                .setTitle(\`\n${variableName}\`)
+                .setHelpText(\`${variableLabel}\`);`;
+                }
+            } else if (measurementLevel === "Ordinal") {
+                formCode = `
+        var item = form.addMultipleChoiceItem();
+            item.setTitle(\`\n${variableName}\`)
+                \t.setHelpText(\`${code_text}\`)
+                \t.setChoices(${choiceList});`
+            } else {
+                if (low && high) {
+                    formCode = `
+            var textItem = form.addTextItem()
+                .setTitle(\`\n${variableName}\`)
+                .setHelpText(\`${variableLabel} (${units})\`);
+            var textValidation = FormApp.createTextValidation()
+                .setHelpText('Input was not a number between ${low} and ${high}.')
+                .requireNumberBetween(${low}, ${high})
+                .build();
+            textItem.setValidation(textValidation);
+            `;
+                } else {
+                    formCode = `
+            var textItem = form.addTextItem()
+                .setTitle(\`\n${variableName}\`)
+                .setHelpText(\`${variableLabel} (${units})\`);`
+                }
+            }
+
+            codef += formCode;
+            codeToCopy.innerText = codef;
+
             clearForm();
-
         }
-
-
 
         function clearForm() {
             document.getElementById('current-variable').value = '';
@@ -643,11 +689,19 @@
             code2 += "."
             code3 += "."
             code4 += "."
+
+            code_Last = `Logger.log('Form URL: ' + form.getPublishedUrl());
+            Logger.log('Form Edit URL: ' + form.getEditUrl());`;
+            //MailApp.sendEmail(Session.getActiveUser().getEmail(), 'Your Google Form', 'Form URL: ' + form.getPublishedUrl() + '\\nForm Edit URL: ' + form.getEditUrl());
+
+
             if (copied === 1) {
                 copied = 0
                 var textToCopy = document.getElementById('textToCopy');
                 textToCopy.innerText = code1 + code2 + code3 + code4 + "\n" + "EXECUTE.";
                 var textToCopy = document.getElementById('textToCopy').innerText;
+                codef += code_Last;
+                codeToCopy.innerText = codef;
             }
 
             // Create a temporary textarea element to hold the text
